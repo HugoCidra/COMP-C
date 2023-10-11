@@ -1,7 +1,9 @@
 digit [0-9]
+clit_digit [0-7]
+letter [a-zA-Z]
 v_identifier [a-zA-Z][a-zA-Z0-9_]*
 keywords int|char|double|if|then|else|while|short|return|void
-spaces [\t ]
+spaces [ ]
 newline [\n]
 tokens [()=,*/+-]
 exp [eE]
@@ -11,8 +13,6 @@ signal [+-]
 %X BLOCK_COMMENT
 
 %{
-    #include <string.h>
-
     int line = 1; int col = 1;
 
     char* toUpper(char* temp) {
@@ -32,13 +32,15 @@ signal [+-]
 {spaces}                    {col += yyleng;}
 {newline}                   {line++; col = 1;}
 "//"                        {BEGIN LINE_COMMENT;}
-<LINE_COMMENT>.             {;}
-<LINE_COMMENT>\n            {BEGIN 0;}
+<LINE_COMMENT>.             {col += yyleng;}
+<LINE_COMMENT>\n            {BEGIN 0; line++;}
 "/*"                        {BEGIN BLOCK_COMMENT;}
-<BLOCK_COMMENT>.            {;}
+<BLOCK_COMMENT>.            {; col += yyleng;}
+<BLOCK_COMMENT>\n           {; line++;}
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
+(\'+{letter}+\'+|\'+{digit}+\'+|\\+("n"|"t"|\\|\'|\"|{clit_digit}{3}))            { printf ("CHARLIT(%s)\n", yytext); col += yyleng;}
 {tokens}*                   { printf("%s\n", yytext); col += yyleng;}
-.                           { printf("Urecognized character '%s' (line %d, column %d)\n", yytext, line, col); col += yyleng;}
+.                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
 extern int yylex();
 int main() {
