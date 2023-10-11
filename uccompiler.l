@@ -3,7 +3,8 @@ clit_digit [0-7]
 letter [a-zA-Z]
 v_identifier [a-zA-Z][a-zA-Z0-9_]*
 keywords int|char|double|if|then|else|while|short|return|void
-spaces [ ]
+reserved auto|break|case|const|continue|default|do|enum|extern|float|for|goto|long|register|signed|sizeof|static|struct|switch|typedef|union|unsigned|volatile|_Packed|"--"|"++"|"["|"]"
+spaces [\t ]
 newline [\n]
 tokens [()=,*/+-]
 exp [eE]
@@ -11,6 +12,7 @@ signal [+-]
 
 %X LINE_COMMENT
 %X BLOCK_COMMENT
+%X CHARLIT
 
 %{
     int line = 1; int col = 1;
@@ -26,9 +28,10 @@ signal [+-]
 
 %%
 {digit}*("."*{digit}*{exp}+{signal}*{digit}+|"."{digit}+|{digit}+".")         { printf("DECIMAL (%s)\n", yytext); col += yyleng;}
-{digit}+                    { printf("NATURAL (%s)\n", yytext); col += yyleng;}
+{digit}+                    { printf("NATURAL(%s)\n", yytext); col += yyleng;}
+{reserved}                  { printf("RESERVED(%s)\n", yytext); col += yyleng;}
 {keywords}                  { printf("%s\n", toUpper(yytext)); col += yyleng;}
-{v_identifier}*             { printf("IDENTIFIER (%s)\n", yytext); col += yyleng;}
+{v_identifier}*             { printf("IDENTIFIER(%s)\n", yytext); col += yyleng;}
 {spaces}                    {col += yyleng;}
 {newline}                   {line++; col = 1;}
 "//"                        {BEGIN LINE_COMMENT;}
@@ -38,7 +41,10 @@ signal [+-]
 <BLOCK_COMMENT>.            {; col += yyleng;}
 <BLOCK_COMMENT>\n           {; line++;}
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
-(\'+{letter}+\'+|\'+{digit}+\'+|\\+("n"|"t"|\\|\'|\"|{clit_digit}{3}))            { printf ("CHARLIT(%s)\n", yytext); col += yyleng;}
+\'                          {BEGIN CHARLIT;}
+<CHARLIT>\'                   {BEGIN 0}
+<CHARLIT>("n"|"t"|\\|\'|\"|{clit_digit}{1,3})                   { printf ("CHARLIT(%s)\n", yytext); col += yyleng;}
+(\'{letter}{1}\'|\'{digit}{1}\'|)            { printf ("CHARLIT(%s)\n", yytext); col += yyleng;}
 {tokens}*                   { printf("%s\n", yytext); col += yyleng;}
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
