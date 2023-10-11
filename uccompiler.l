@@ -4,6 +4,7 @@ letter [a-zA-Z]
 v_identifier [a-zA-Z][a-zA-Z0-9_]*
 keywords int|char|double|if|then|else|while|short|return|void
 reserved auto|break|case|const|continue|default|do|enum|extern|float|for|goto|long|register|signed|sizeof|static|struct|switch|typedef|union|unsigned|volatile|_Packed|"--"|"++"|"["|"]"
+    
 spaces [\t ]
 newline [\n]
 tokens [()=,*/+-]
@@ -34,6 +35,30 @@ signal [+-]
 {v_identifier}*             { printf("IDENTIFIER(%s)\n", yytext); col += yyleng;}
 {spaces}                    {col += yyleng;}
 {newline}                   {line++; col = 1;}
+"&"                         {printf ("BITWISEAND\n"); col += yyleng;}
+"|"                         {printf ("BITWISEOR\n"); col += yyleng;}
+"^"                         {printf ("BITWISEXOR\n"); col += yyleng;}
+"&&"                        {printf ("AND\n"); col += yyleng;}
+"="                         {printf ("ASSIGN\n"); col += yyleng;}
+"*"                         {printf ("MUL\n"); col += yyleng;}
+","                         {printf ("COMMA\n"); col += yyleng;}
+"/"                         {printf ("DIV\n"); col += yyleng;}
+"=="                        {printf ("EQ\n"); col += yyleng;}
+">="                        {printf ("GE\n"); col += yyleng;}
+">"                         {printf ("GT\n"); col += yyleng;}
+"{"                         {printf ("LBRACE\n"); col += yyleng;}
+"<="                        {printf ("LE\n"); col += yyleng;}
+"("                         {printf ("LPAR\n"); col += yyleng;}
+"<"                         {printf ("LT\n"); col += yyleng;}
+"-"                         {printf ("MINUS\n"); col += yyleng;}
+"%"                         {printf ("MOD\n"); col += yyleng;}
+"!="                        {printf ("NE\n"); col += yyleng;}
+"!"                         {printf ("NOT\n"); col += yyleng;}
+"||"                        {printf ("OR\n"); col += yyleng;}
+"+"                         {printf ("PLUS\n"); col += yyleng;}
+"}"                         {printf ("RBRACE\n"); col += yyleng;}
+")"                         {printf ("RPAR\n"); col += yyleng;}
+";"                         {printf ("SEMI\n"); col += yyleng;}
 "//"                        {BEGIN LINE_COMMENT;}
 <LINE_COMMENT>.             {col += yyleng;}
 <LINE_COMMENT>\n            {BEGIN 0; line++;}
