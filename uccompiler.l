@@ -10,10 +10,11 @@ newline [\n]
 tokens [()=,*/+-]
 exp [eE]
 signal [+-]
+chrlit [n|t|\\|\'|\"]
 
 %X LINE_COMMENT
 %X BLOCK_COMMENT
-%X CHARLIT
+%X CHRLIT
 
 %{
     int line = 1; int col = 1;
@@ -35,6 +36,7 @@ signal [+-]
 {v_identifier}*             { printf("IDENTIFIER(%s)\n", yytext); col += yyleng;}
 {spaces}                    {col += yyleng;}
 {newline}                   {line++; col = 1;}
+
 "&"                         {printf ("BITWISEAND\n"); col += yyleng;}
 "|"                         {printf ("BITWISEOR\n"); col += yyleng;}
 "^"                         {printf ("BITWISEXOR\n"); col += yyleng;}
@@ -59,6 +61,7 @@ signal [+-]
 "}"                         {printf ("RBRACE\n"); col += yyleng;}
 ")"                         {printf ("RPAR\n"); col += yyleng;}
 ";"                         {printf ("SEMI\n"); col += yyleng;}
+
 "//"                        {BEGIN LINE_COMMENT;}
 <LINE_COMMENT>.             {col += yyleng;}
 <LINE_COMMENT>\n            {BEGIN 0; line++;}
@@ -66,10 +69,12 @@ signal [+-]
 <BLOCK_COMMENT>.            {; col += yyleng;}
 <BLOCK_COMMENT>\n           {; line++;}
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
-\'                          {BEGIN CHARLIT;}
-<CHARLIT>\'                   {BEGIN 0}
-<CHARLIT>("n"|"t"|\\|\'|\"|{clit_digit}{1,3})                   { printf ("CHARLIT(%s)\n", yytext); col += yyleng;}
-(\'{letter}{1}\'|\'{digit}{1}\'|)            { printf ("CHARLIT(%s)\n", yytext); col += yyleng;}
+
+\'[^\\]{1}\'                                            { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
+\'\\({chrlit}|{clit_digit}{1,3})\'                      { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
+\'([^\\|\']{1}|\\({chrlit}|{clit_digit}{1,3}))[^\']     { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng;}
+\'[^\\].+\'|\'\\+({chrlit}+|{clit_digit}+)\'|\'\'       { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}                    
+
 {tokens}*                   { printf("%s\n", yytext); col += yyleng;}
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
