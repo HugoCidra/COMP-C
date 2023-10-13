@@ -2,20 +2,22 @@ digit [0-9]
 clit_digit [0-7]
 letter [a-zA-Z]
 v_identifier [a-zA-Z_][a-zA-Z0-9_]*
+v_identifier [a-zA-Z_][a-zA-Z0-9_]*
 keywords int|char|double|if|then|else|while|short|return|void
 reserved auto|break|case|const|continue|default|do|enum|extern|float|for|goto|long|register|signed|sizeof|static|struct|switch|typedef|union|unsigned|volatile|_Packed|"--"|"++"|"["|"]"
     
 spaces [\t ]
-newline \n|\r\n|\r
+newline \n|\r|\r\n
 exp [eE]
 signal [+-]
-chrlit [n|t|\\|\'|\"]
+escape [n|t|\\|\'|\"|{clit_digit}{1,3}]
 
 %X LINE_COMMENT
 %X BLOCK_COMMENT
 
 %{
     int line = 1; int col = 1;
+    int c_line = 1; int c_col = 1;
     int c_line = 1; int c_col = 1;
 
     char* toUpper(char* temp) {
@@ -63,17 +65,16 @@ chrlit [n|t|\\|\'|\"]
 
 "//"                        {BEGIN LINE_COMMENT;}
 <LINE_COMMENT>.             {col += yyleng;}
-<LINE_COMMENT>{newline}            {BEGIN 0; line++; col = 1;}
+<LINE_COMMENT>{newline}     {BEGIN 0; line++;}
 "/*"                        {BEGIN BLOCK_COMMENT; c_line = line; c_col = col;}
 <BLOCK_COMMENT>{newline}           {col = 1; line++;}
 <BLOCK_COMMENT><<EOF>>      { printf("Line %d, column %d: unterminated comment\n", c_line, c_col); BEGIN 0;}
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
 <BLOCK_COMMENT>.            {col += yyleng;}
 
-\'[^\\]{1}\'                                            { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
-\'\\({chrlit}|({clit_digit}{1,3}))\'                      { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
-\'([^\\|\']{1}|\\({chrlit}|{clit_digit}{1,3}))[^\']     { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng;}
-\'[^\\].+\'|\'\\+({chrlit}+|{clit_digit}+)\'|\'\'       { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}                    
+\'(\\{escape}|[^\\]|[^{newline}])\'                              { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
+\'([^\\|\']|\\{escape})[^\']                        { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng;}
+\'([^\\].+|\\+({escape}|{clit_digit}))?\'           { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
 
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
@@ -81,6 +82,10 @@ extern int yylex();
 int main() {
     yylex();
     return 0;
+}
+
+int yywrap() {
+    return 1;
 }
 
 int yywrap() {
