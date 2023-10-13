@@ -2,22 +2,21 @@ digit [0-9]
 clit_digit [0-7]
 letter [a-zA-Z]
 v_identifier [a-zA-Z_][a-zA-Z0-9_]*
-v_identifier [a-zA-Z_][a-zA-Z0-9_]*
 keywords int|char|double|if|then|else|while|short|return|void
 reserved auto|break|case|const|continue|default|do|enum|extern|float|for|goto|long|register|signed|sizeof|static|struct|switch|typedef|union|unsigned|volatile|_Packed|"--"|"++"|"["|"]"
     
-spaces [\t ]
-newline \n|\r|\r\n
+spaces [\r\t ]
+newline \r\n|\r|\n
 exp [eE]
 signal [+-]
-escape [n|t|\\|\'|\"|{clit_digit}{1,3}]
+escape n|t|\\|\'|\"|{clit_digit}{1,3}
+escape_nd n|t|\\|\'|\"
 
 %X LINE_COMMENT
 %X BLOCK_COMMENT
 
 %{
     int line = 1; int col = 1;
-    int c_line = 1; int c_col = 1;
     int c_line = 1; int c_col = 1;
 
     char* toUpper(char* temp) {
@@ -30,7 +29,7 @@ escape [n|t|\\|\'|\"|{clit_digit}{1,3}]
 %}
 
 %%
-{digit}*("."*{digit}*{exp}+{signal}*{digit}+|"."{digit}+|{digit}+".")         { printf("DECIMAL (%s)\n", yytext); col += yyleng;}
+{digit}*("."*{digit}*{exp}+{signal}*{digit}+|"."{digit}+|{digit}+".")         { printf("DECIMAL(%s)\n", yytext); col += yyleng;}
 {digit}+                    { printf("NATURAL(%s)\n", yytext); col += yyleng;}
 {reserved}                  { printf("RESERVED(%s)\n", yytext); col += yyleng;}
 {keywords}                  { printf("%s\n", toUpper(yytext)); col += yyleng;}
@@ -38,43 +37,43 @@ escape [n|t|\\|\'|\"|{clit_digit}{1,3}]
 {spaces}                    {col += yyleng;}
 {newline}                   {line++; col = 1;}
 
-"&"                         {printf ("BITWISEAND\n"); col += yyleng;}
-"|"                         {printf ("BITWISEOR\n"); col += yyleng;}
-"^"                         {printf ("BITWISEXOR\n"); col += yyleng;}
-"&&"                        {printf ("AND\n"); col += yyleng;}
-"="                         {printf ("ASSIGN\n"); col += yyleng;}
-"*"                         {printf ("MUL\n"); col += yyleng;}
-","                         {printf ("COMMA\n"); col += yyleng;}
-"/"                         {printf ("DIV\n"); col += yyleng;}
-"=="                        {printf ("EQ\n"); col += yyleng;}
-">="                        {printf ("GE\n"); col += yyleng;}
-">"                         {printf ("GT\n"); col += yyleng;}
-"{"                         {printf ("LBRACE\n"); col += yyleng;}
-"<="                        {printf ("LE\n"); col += yyleng;}
-"("                         {printf ("LPAR\n"); col += yyleng;}
-"<"                         {printf ("LT\n"); col += yyleng;}
-"-"                         {printf ("MINUS\n"); col += yyleng;}
-"%"                         {printf ("MOD\n"); col += yyleng;}
-"!="                        {printf ("NE\n"); col += yyleng;}
-"!"                         {printf ("NOT\n"); col += yyleng;}
-"||"                        {printf ("OR\n"); col += yyleng;}
-"+"                         {printf ("PLUS\n"); col += yyleng;}
-"}"                         {printf ("RBRACE\n"); col += yyleng;}
-")"                         {printf ("RPAR\n"); col += yyleng;}
-";"                         {printf ("SEMI\n"); col += yyleng;}
+"&"                         { printf ("BITWISEAND\n"); col += yyleng;}
+"|"                         { printf ("BITWISEOR\n"); col += yyleng;}
+"^"                         { printf ("BITWISEXOR\n"); col += yyleng;}
+"&&"                        { printf ("AND\n"); col += yyleng;}
+"="                         { printf ("ASSIGN\n"); col += yyleng;}
+"*"                         { printf ("MUL\n"); col += yyleng;}
+","                         { printf ("COMMA\n"); col += yyleng;}
+"/"                         { printf ("DIV\n"); col += yyleng;}
+"=="                        { printf ("EQ\n"); col += yyleng;}
+">="                        { printf ("GE\n"); col += yyleng;}
+">"                         { printf ("GT\n"); col += yyleng;}
+"{"                         { printf ("LBRACE\n"); col += yyleng;}
+"<="                        { printf ("LE\n"); col += yyleng;}
+"("                         { printf ("LPAR\n"); col += yyleng;}
+"<"                         { printf ("LT\n"); col += yyleng;}
+"-"                         { printf ("MINUS\n"); col += yyleng;}
+"%"                         { printf ("MOD\n"); col += yyleng;}
+"!="                        { printf ("NE\n"); col += yyleng;}
+"!"                         { printf ("NOT\n"); col += yyleng;}
+"||"                        { printf ("OR\n"); col += yyleng;}
+"+"                         { printf ("PLUS\n"); col += yyleng;}
+"}"                         { printf ("RBRACE\n"); col += yyleng;}
+")"                         { printf ("RPAR\n"); col += yyleng;}
+";"                         { printf ("SEMI\n"); col += yyleng;}
 
 "//"                        {BEGIN LINE_COMMENT;}
 <LINE_COMMENT>.             {col += yyleng;}
 <LINE_COMMENT>{newline}     {BEGIN 0; line++;}
 "/*"                        {BEGIN BLOCK_COMMENT; c_line = line; c_col = col;}
-<BLOCK_COMMENT>{newline}           {col = 1; line++;}
+<BLOCK_COMMENT>{newline}    {col = 1; line++;}
 <BLOCK_COMMENT><<EOF>>      { printf("Line %d, column %d: unterminated comment\n", c_line, c_col); BEGIN 0;}
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
 <BLOCK_COMMENT>.            {col += yyleng;}
 
-\'(\\{escape}|[^\\]|[^{newline}])\'                              { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
-\'([^\\|\']|\\{escape})[^\']                        { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng;}
-\'([^\\].+|\\+({escape}|{clit_digit}))?\'           { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
+(\'(\\{escape}|[^\\])\')                            { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
+\'([^\\].+|\\+({escape_nd}|{clit_digit}))?\'        { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
+\'([^\\]|\\{escape}|{spaces}|{newline})?[^\']       { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng;}
 
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
