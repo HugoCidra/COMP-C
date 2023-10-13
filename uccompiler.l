@@ -7,14 +7,12 @@ reserved auto|break|case|const|continue|default|do|enum|extern|float|for|goto|lo
     
 spaces [\t ]
 newline [\n]
-tokens [()=,*/+-]
 exp [eE]
 signal [+-]
 chrlit [n|t|\\|\'|\"]
 
 %X LINE_COMMENT
 %X BLOCK_COMMENT
-%X CHRLIT
 
 %{
     int line = 1; int col = 1;
@@ -68,6 +66,7 @@ chrlit [n|t|\\|\'|\"]
 "/*"                        {BEGIN BLOCK_COMMENT;}
 <BLOCK_COMMENT>.            {; col += yyleng;}
 <BLOCK_COMMENT>\n           {; line++;}
+<BLOCK_COMMENT><<EOF>>      { printf("Line %d, column %d: unterminated comment\n", line, col); BEGIN 0;}
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
 
 \'[^\\]{1}\'                                            { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
@@ -75,7 +74,6 @@ chrlit [n|t|\\|\'|\"]
 \'([^\\|\']{1}|\\({chrlit}|{clit_digit}{1,3}))[^\']     { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng;}
 \'[^\\].+\'|\'\\+({chrlit}+|{clit_digit}+)\'|\'\'       { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}                    
 
-{tokens}*                   { printf("%s\n", yytext); col += yyleng;}
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
 extern int yylex();
