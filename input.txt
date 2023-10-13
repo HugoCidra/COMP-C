@@ -1,12 +1,9 @@
-int main ( void ) {
-    char i = ’A’;
-    while (i <= ’Z’) {
-        putchar (i);
-        i = i + 1;
-    }
-    return 0;
-}
+'ç'
+'   '
+'ç
+'abc 456
+'~'
+'^
 
 
-digito E digito (sinal)
-digito.digito E digito (sinal)
+//comentario EOF
