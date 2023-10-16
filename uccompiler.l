@@ -71,9 +71,9 @@ escape_nd n|t|\\|\'|\"
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
 <BLOCK_COMMENT>.            {col += yyleng;}
 
-(\'(\\{escape}|[^\\])\')                            { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
-\'([^\\].+|\\+({escape_nd}|{clit_digit}))?\'        { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
-\'([^\\]|\\{escape}|{spaces}|{newline})?[^\']       { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng;}
+\'(\\{escape}|[^\\])\'                                                          { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
+\'([^\\]|\\({escape_nd}+|{clit_digit}+|{spaces}+)|{newline}+)[^\']       { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng;}
+\'([^\\]|[^']+|\\+({escape_nd}+|{clit_digit}+))?\'                                   { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
 
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
