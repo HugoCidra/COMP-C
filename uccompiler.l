@@ -72,12 +72,9 @@ escape_nd n|t|\\|\'|\"
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
 <BLOCK_COMMENT>.            {col += yyleng; c_col += yyleng;}
 
-"'"                         {BEGIN CHRLIT;}
-<CHRLIT>{spaces}            {; col += yyleng;}
-<CHRLIT>{newline}           {line++; col = 1;}
-<CHRLIT>(\\{escape}|[^\\|\'])\'                                                 { printf("CHRLIT('%s)\n", yytext); col += yyleng; BEGIN 0;}
-<CHRLIT>[^\']+                                               { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng; BEGIN 0;}
-<CHRLIT>([^\\|^\']+.*|\\+({escape_nd}+|{clit_digit}+|{newline}+|{spaces}+))?\'    { printf("Line %d, column %d: invalid char constant ('%s)\n", line, col, yytext); col += yyleng; BEGIN 0;}
+\'(\\{escape}|[^\\|\'])\'                                                 { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
+\'.?{newline}+[^\']                                                          { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng; line++; col = 1;}
+\'([^\']|\\+({escape_nd}+|{clit_digit}+|{newline}+|{spaces}+)[^\']?)?\'    { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
 
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
