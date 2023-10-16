@@ -14,6 +14,7 @@ escape_nd n|t|\\|\'|\"
 
 %X LINE_COMMENT
 %X BLOCK_COMMENT
+%X CHRLIT
 
 %{
     int line = 1; int col = 1;
@@ -64,16 +65,19 @@ escape_nd n|t|\\|\'|\"
 
 "//"                        {BEGIN LINE_COMMENT;}
 <LINE_COMMENT>.             {col += yyleng;}
-<LINE_COMMENT>{newline}     {BEGIN 0; line++;}
+<LINE_COMMENT>{newline}     {line++; col = 1; BEGIN 0;}
 "/*"                        {BEGIN BLOCK_COMMENT; c_line = line; c_col = col;}
-<BLOCK_COMMENT>{newline}    {col = 1; line++;}
+<BLOCK_COMMENT>{newline}    {col = 1; line++; c_col = 1; c_line = 1;}
 <BLOCK_COMMENT><<EOF>>      { printf("Line %d, column %d: unterminated comment\n", c_line, c_col); BEGIN 0;}
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
-<BLOCK_COMMENT>.            {col += yyleng;}
+<BLOCK_COMMENT>.            {col += yyleng; c_col += yyleng;}
 
-\'(\\{escape}|[^\\])\'                                                          { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
-\'([^\\]|\\({escape_nd}+|{clit_digit}+|{spaces}+)|{newline}+)[^\']       { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng;}
-\'([^\\]|[^']+|\\+({escape_nd}+|{clit_digit}+))?\'                                   { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
+"'"                         {BEGIN CHRLIT;}
+<CHRLIT>{spaces}            {; col += yyleng;}
+<CHRLIT>{newline}           {line++; col = 1;}
+<CHRLIT>(\\{escape}|[^\\|\'])\'                                                 { printf("CHRLIT('%s)\n", yytext); col += yyleng; BEGIN 0;}
+<CHRLIT>[^\']+                                               { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng; BEGIN 0;}
+<CHRLIT>([^\\|^\']+.*|\\+({escape_nd}+|{clit_digit}+|{newline}+|{spaces}+))?\'    { printf("Line %d, column %d: invalid char constant ('%s)\n", line, col, yytext); col += yyleng; BEGIN 0;}
 
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
@@ -81,10 +85,6 @@ extern int yylex();
 int main() {
     yylex();
     return 0;
-}
-
-int yywrap() {
-    return 1;
 }
 
 int yywrap() {
