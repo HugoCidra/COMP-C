@@ -19,6 +19,7 @@ escape_nd n|t|\\|\'|\"
 %{
     int line = 1; int col = 1;
     int c_line = 1; int c_col = 1;
+    int l = 0;
 
     char* toUpper(char* temp) {
         for(int i = 0; temp[i]; ++i) {
@@ -30,38 +31,38 @@ escape_nd n|t|\\|\'|\"
 %}
 
 %%
-{digit}*("."*{digit}*{exp}+{signal}*{digit}+|"."{digit}+|{digit}+".")         { printf("DECIMAL(%s)\n", yytext); col += yyleng;}
-{digit}+                    { printf("NATURAL(%s)\n", yytext); col += yyleng;}
-{reserved}                  { printf("RESERVED(%s)\n", yytext); col += yyleng;}
-{keywords}                  { printf("%s\n", toUpper(yytext)); col += yyleng;}
-{v_identifier}*             { printf("IDENTIFIER(%s)\n", yytext); col += yyleng;}
+{digit}*("."*{digit}*{exp}+{signal}*{digit}+|"."{digit}+|{digit}+".")         { if(l > 0)printf("DECIMAL(%s)\n", yytext); col += yyleng;}
+{digit}+                    { if(l > 0) printf("NATURAL(%s)\n", yytext); col += yyleng;}
+{reserved}                  { if(l > 0) printf("RESERVED(%s)\n", yytext); col += yyleng;}
+{keywords}                  { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;}
+{v_identifier}*             { if(l > 0) printf("IDENTIFIER(%s)\n", yytext); col += yyleng;}
 {spaces}                    {col += yyleng;}
 {newline}                   {line++; col = 1;}
 
-"&"                         { printf ("BITWISEAND\n"); col += yyleng;}
-"|"                         { printf ("BITWISEOR\n"); col += yyleng;}
-"^"                         { printf ("BITWISEXOR\n"); col += yyleng;}
-"&&"                        { printf ("AND\n"); col += yyleng;}
-"="                         { printf ("ASSIGN\n"); col += yyleng;}
-"*"                         { printf ("MUL\n"); col += yyleng;}
-","                         { printf ("COMMA\n"); col += yyleng;}
-"/"                         { printf ("DIV\n"); col += yyleng;}
-"=="                        { printf ("EQ\n"); col += yyleng;}
-">="                        { printf ("GE\n"); col += yyleng;}
-">"                         { printf ("GT\n"); col += yyleng;}
-"{"                         { printf ("LBRACE\n"); col += yyleng;}
-"<="                        { printf ("LE\n"); col += yyleng;}
-"("                         { printf ("LPAR\n"); col += yyleng;}
-"<"                         { printf ("LT\n"); col += yyleng;}
-"-"                         { printf ("MINUS\n"); col += yyleng;}
-"%"                         { printf ("MOD\n"); col += yyleng;}
-"!="                        { printf ("NE\n"); col += yyleng;}
-"!"                         { printf ("NOT\n"); col += yyleng;}
-"||"                        { printf ("OR\n"); col += yyleng;}
-"+"                         { printf ("PLUS\n"); col += yyleng;}
-"}"                         { printf ("RBRACE\n"); col += yyleng;}
-")"                         { printf ("RPAR\n"); col += yyleng;}
-";"                         { printf ("SEMI\n"); col += yyleng;}
+"&"                         { if(l > 0) printf ("BITWISEAND\n"); col += yyleng;}
+"|"                         { if(l > 0) printf ("BITWISEOR\n"); col += yyleng;}
+"^"                         { if(l > 0) printf ("BITWISEXOR\n"); col += yyleng;}
+"&&"                        { if(l > 0) printf ("AND\n"); col += yyleng;}
+"="                         { if(l > 0) printf ("ASSIGN\n"); col += yyleng;}
+"*"                         { if(l > 0) printf ("MUL\n"); col += yyleng;}
+","                         { if(l > 0) printf ("COMMA\n"); col += yyleng;}
+"/"                         { if(l > 0) printf ("DIV\n"); col += yyleng;}
+"=="                        { if(l > 0) printf ("EQ\n"); col += yyleng;}
+">="                        { if(l > 0) printf ("GE\n"); col += yyleng;}
+">"                         { if(l > 0) printf ("GT\n"); col += yyleng;}
+"{"                         { if(l > 0) printf ("LBRACE\n"); col += yyleng;}
+"<="                        { if(l > 0) printf ("LE\n"); col += yyleng;}
+"("                         { if(l > 0) printf ("LPAR\n"); col += yyleng;}
+"<"                         { if(l > 0) printf ("LT\n"); col += yyleng;}
+"-"                         { if(l > 0) printf ("MINUS\n"); col += yyleng;}
+"%"                         { if(l > 0) printf ("MOD\n"); col += yyleng;}
+"!="                        { if(l > 0) printf ("NE\n"); col += yyleng;}
+"!"                         { if(l > 0) printf ("NOT\n"); col += yyleng;}
+"||"                        { if(l > 0) printf ("OR\n"); col += yyleng;}
+"+"                         { if(l > 0) printf ("PLUS\n"); col += yyleng;}
+"}"                         { if(l > 0) printf ("RBRACE\n"); col += yyleng;}
+")"                         { if(l > 0) printf ("RPAR\n"); col += yyleng;}
+";"                         { if(l > 0) printf ("SEMI\n"); col += yyleng;}
 
 "//"                        {BEGIN LINE_COMMENT;}
 <LINE_COMMENT>.             {col += yyleng;}
@@ -72,14 +73,17 @@ escape_nd n|t|\\|\'|\"
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
 <BLOCK_COMMENT>.            {col += yyleng; c_col += yyleng;}
 
-\'(\\{escape}|[^\\|\'])\'                                                 { printf("CHRLIT(%s)\n", yytext); col += yyleng;}
-\'.?{newline}+[^\']                                                          { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng; line++; col = 1;}
-\'([^\']|\\+({escape_nd}+|{clit_digit}+|{newline}+|{spaces}+)[^\']?)?\'    { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
+\'(\\{escape}|[^\\|\'])\'                                                   { if(l > 0) printf("CHRLIT(%s)\n", yytext); col += yyleng;}
+\'.?{newline}[^\']?                                                         { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng; line++; col = 1;}
+\'([^\']*|\\+({escape_nd}+|{clit_digit}+|{newline}+|{spaces}+).*)?\'        { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
 
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
 %%
 extern int yylex();
-int main() {
+int main(int argc, char** argv) {
+    if(argc > 1) 
+        if(!strcmp(argv[1],"-l")) l = 1;
+    
     yylex();
     return 0;
 }
