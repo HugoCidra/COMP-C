@@ -3,7 +3,7 @@ clit_digit [0-7]
 letter [a-zA-Z]
 v_identifier [a-zA-Z_][a-zA-Z0-9_]*
 keywords int|char|double|if|then|else|while|short|return|void
-reserved auto|break|case|const|continue|default|do|enum|extern|float|for|goto|long|register|signed|sizeof|static|struct|switch|typedef|union|unsigned|volatile|_Packed|"--"|"++"|"["|"]"
+reserved auto|break|case|const|continue|default|do|enum|extern|float|for|goto|inline|long|register|signed|sizeof|static|struct|switch|typedef|union|unsigned|volatile|_Packed|"--"|"++"|"["|"]"|restrict|_Bool|_Complex|_Imaginary
     
 spaces [\r\t ]
 newline \r\n|\r|\n
@@ -31,11 +31,6 @@ escape_nd n|t|\\|\'|\"
 %}
 
 %%
-{digit}*("."*{digit}*{exp}+{signal}*{digit}+|"."{digit}+|{digit}+".")         { if(l > 0)printf("DECIMAL(%s)\n", yytext); col += yyleng;}
-{digit}+                    { if(l > 0) printf("NATURAL(%s)\n", yytext); col += yyleng;}
-{reserved}                  { if(l > 0) printf("RESERVED(%s)\n", yytext); col += yyleng;}
-{keywords}                  { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;}
-{v_identifier}              { if(l > 0) printf("IDENTIFIER(%s)\n", yytext); col += yyleng;}
 {spaces}                    {col += yyleng;}
 {newline}                   {line++; col = 1;}
 
@@ -64,6 +59,12 @@ escape_nd n|t|\\|\'|\"
 ")"                         { if(l > 0) printf ("RPAR\n"); col += yyleng;}
 ";"                         { if(l > 0) printf ("SEMI\n"); col += yyleng;}
 
+{digit}+"."|{digit}*"."{digit}+|({digit}+"."{digit}*|"."{digit}+|{digit}+){exp}{signal}?{digit}+         { if(l > 0) printf("DECIMAL(%s)\n", yytext); col += yyleng;}   
+{digit}+                    { if(l > 0) printf("NATURAL(%s)\n", yytext); col += yyleng;}
+{reserved}                  { if(l > 0) printf("RESERVED(%s)\n", yytext); col += yyleng;}
+{keywords}                  { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;}
+{v_identifier}              { if(l > 0) printf("IDENTIFIER(%s)\n", yytext); col += yyleng;}
+
 "//"                        {BEGIN LINE_COMMENT;}
 <LINE_COMMENT>.             {col += yyleng;}
 <LINE_COMMENT>{newline}     {line++; col = 1; BEGIN 0;}
@@ -73,9 +74,9 @@ escape_nd n|t|\\|\'|\"
 <BLOCK_COMMENT>"*/"         {BEGIN 0;}
 <BLOCK_COMMENT>.            {col += yyleng; c_col += yyleng;}
 
-\'(\\{escape}|[^\\\r\n\'])\'                                                          { if(l > 0) printf("CHRLIT(%s)\n", yytext); col += yyleng;}
-'([^\n\'\\]|\\.)*\\?{newline}                                                      { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng; col = 1;}
-'([^\n\'\\]|\\.)*'        { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
+\'(\\{escape}|[^\\\r\n\'])\'        { if(l > 0) printf("CHRLIT(%s)\n", yytext); col += yyleng;}
+'([^\n\'\\]|\\.)*\\?{newline}       { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng; col = 1; line++;}
+'([^\n\'\\]|\\.)*'                  { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
 
 
 .                           { printf("Line %d, column %d: unrecognized character (%s)\n", line, col, yytext); col += yyleng;}
