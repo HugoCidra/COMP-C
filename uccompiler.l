@@ -2,7 +2,7 @@ digit [0-9]
 clit_digit [0-7]
 letter [a-zA-Z]
 v_identifier [a-zA-Z_][a-zA-Z0-9_]*
-keywords int|char|double|if|then|else|while|short|return|void
+keywords int|char|double|if|else|while|short|return|void
 reserved auto|break|case|const|continue|default|do|enum|extern|float|for|goto|inline|long|register|signed|sizeof|static|struct|switch|typedef|union|unsigned|volatile|_Packed|"--"|"++"|"["|"]"|restrict|_Bool|_Complex|_Imaginary
     
 spaces [\r\t ]
@@ -68,11 +68,11 @@ escape_nd n|t|\\|\'|\"
 "//"                        {BEGIN LINE_COMMENT;}
 <LINE_COMMENT>.             {col += yyleng;}
 <LINE_COMMENT>{newline}     {line++; col = 1; BEGIN 0;}
-"/*"                        {BEGIN BLOCK_COMMENT; c_line = line; c_col = col;}
-<BLOCK_COMMENT>{newline}    {col = 1; line++; c_col = 1; c_line = 1;}
+"/*"                        {BEGIN BLOCK_COMMENT; c_line = line; c_col = col; col += yyleng;}
+<BLOCK_COMMENT>{newline}    {col = 1; line++;}
 <BLOCK_COMMENT><<EOF>>      { printf("Line %d, column %d: unterminated comment\n", c_line, c_col); BEGIN 0;}
-<BLOCK_COMMENT>"*/"         {BEGIN 0;}
-<BLOCK_COMMENT>.            {col += yyleng; c_col += yyleng;}
+<BLOCK_COMMENT>"*/"         {col += yyleng; BEGIN 0;}
+<BLOCK_COMMENT>.            {col += yyleng;}
 
 \'(\\{escape}|[^\\\r\n\'])\'        { if(l > 0) printf("CHRLIT(%s)\n", yytext); col += yyleng;}
 '([^\n\'\\]|\\.)*\\?{newline}       { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng; col = 1; line++;}
