@@ -13,6 +13,8 @@ typedef struct node {
     int col;
 }Node;
 
-
+Node *add_node(char *info, int line, int column);
+void print_AbsTree(Node *node, int depth);
+void freeAbsTree (Node* node);
 
 #endif
