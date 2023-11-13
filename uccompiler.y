@@ -1,0 +1,172 @@
+%{
+    #include "AbsTree.h"
+    #include <stdio.h>
+%}
+
+%type <node> Head
+%type <node> FunctionsAndDeclarations
+%type <node> FunctionDefinition
+%type <node> FunctionBody
+%type <node> DeclarationsAndStatements
+%type <node> FunctionDeclaration
+%type <node> FunctionDeclarator
+%type <node> ParameterList
+%type <node> ParameterDeclaration
+%type <node> Declaration
+%type <node> TypeSpec
+%type <node> Declarator
+%type <node> Statement
+%type <node> Expr
+
+%type <node> ParameterDeclarationRECUR
+%type <node> DeclarationRECUR
+%type <node> DeclaratorRECUR
+%type <node> ExprRECUR
+
+%token BITWISEAND
+%token BITWISEOR
+%token BITWISEXOR
+%token AND
+%token ASSIGN
+%token MUL
+%token DIV
+%token EQ
+%token GE
+%token GT
+%token LBRACE
+%token LE
+%token LPAR
+%token LT
+%token MINUS
+%token MOD
+%token NE
+%token NOT
+%token OR
+%token PLUS
+%token RBRACE
+%token RPAR
+%token SEMI
+
+%token NATURAL
+%token DECIMAL
+%token RESERVED
+%token IDENTIFIER
+%token CHRLIT
+
+%token INT
+%token CHAR
+%token VOID
+%token SHORT
+%token DOUBLE
+%token IF
+%token ELSE
+%token WHILE
+%token RETURN
+
+%left COMMA
+
+%%
+Head : FunctionsAndDeclarations {;}
+     ;
+
+FunctionsAndDeclarations : FunctionDefinition {;}
+                         | FunctionDeclaration {;}
+                         | Declaration {;}
+                         | FunctionsAndDeclarations FunctionDefinition {;}
+                         | FunctionsAndDeclarations FunctionDeclaration {;}
+                         | FunctionsAndDeclarations Declaration {;}
+                         ;
+
+FunctionDefinition : TypeSpec FunctionDeclarator FunctionBody {;}
+                   ;
+
+FunctionBody : LBRACE DeclarationsAndStatements RBRACE {;}
+             | LBRACE RBRACE {;}
+             ;
+
+DeclarationsAndStatements : Statement DeclarationsAndStatements {;}
+                          | Declaration DeclarationsAndStatements {;}
+                          | Statement {;}
+                          | Declaration {;}
+                          ;
+
+FunctionDeclaration : TypeSpec FunctionDeclarator SEMI {;}
+                    ;
+
+FunctionDeclarator : IDENTIFIER LPAR ParameterList RPAR {;}
+                   ;
+
+ParameterList : ParameterDeclaration {;}
+              | ParameterDeclaration ParameterDeclarationRECUR {;}
+              ;
+
+ParameterDeclarationRECUR : COMMA ParameterDeclaration {;}
+                        | ParameterDeclarationRECUR COMMA ParameterDeclaration {;}
+                        ;
+
+ParameterDeclaration : TypeSpec {;}
+                     | TypeSpec IDENTIFIER {;}
+                     ;
+
+Declaration : TypeSpec Declarator SEMI {;}
+            | TypeSpec Declarator DeclarationRECUR SEMI {;}
+            ;
+
+DeclarationRECUR : COMMA Declarator {;}
+               | DeclarationRECUR COMMA Declarator {;}
+               ;
+
+TypeSpec : CHAR {;}
+         | INT {;}
+         | VOID {;}
+         | SHORT {;}
+         | DOUBLE {;}
+         ;
+
+Statement : SEMI {;}
+          | ExprRECUR SEMI {;}
+          | LBRACE RBRACE {;}
+          | LBRACE Statement RBRACE {;}
+          | IF LPAR Expr RPAR Statement {;}
+          | IF LPAR Expr RPAR Statement ELSE Statement {;}
+          | WHILE LPAR Expr RPAR Statement {;}
+          | RETURN SEMI {;}
+          | RETURN Expr SEMI {;}
+          ;
+
+Expr : Expr ASSIGN Expr {;}
+     | Expr COMMA Expr {;}
+     | Expr PLUS Expr {;}
+     | Expr MINUS Expr {;}
+     | Expr MUL Expr {;}
+     | Expr DIV Expr {;}
+     | Expr MOD Expr {;}
+     | Expr OR Expr {;}
+     | Expr AND Expr {;}
+     | Expr BITWISEAND Expr {;}
+     | Expr BITWISEOR Expr {;}
+     | Expr BITWISEXOR Expr {;}
+     | Expr EQ Expr {;}
+     | Expr NE Expr {;}
+     | Expr LE Expr {;}
+     | Expr GE Expr {;}
+     | Expr LT Expr {;}
+     | Expr GT Expr {;}
+     | PLUS Expr {;}
+     | MINUS Expr {;}
+     | NOT Expr {;}
+     | IDENTIFIER LPAR RPAR {;}
+     | IDENTIFIER LPAR Expr RPAR {;}
+     | IDENTIFIER LPAR Expr ExprRECUR RPAR {;}
+     | IDENTIFIER {;}
+     | NATURAL {;}
+     | CHRLIT {;}
+     | DECIMAL {;}
+     | LPAR Expr RPAR {;}
+     ;
+
+ExprRECUR : Expr {;}
+          | COMMA Expr {;}
+          ;
+
+%%

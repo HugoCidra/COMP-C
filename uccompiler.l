@@ -23,7 +23,19 @@ digit [0-9]
 clit_digit [0-7]
 letter [a-zA-Z]
 v_identifier [a-zA-Z_][a-zA-Z0-9_]*
-keywords int|char|double|if|else|while|short|return|void
+
+INT         int
+CHAR        char
+DOUBLE      double
+IF          if
+ELSE        else
+WHILE       while
+ELSE        else
+WHILE       while
+SHORT       short
+RETURN      return
+VOID        void
+
 reserved auto|break|case|const|continue|default|do|enum|extern|float|for|goto|inline|long|register|signed|sizeof|static|struct|switch|typedef|union|unsigned|volatile|_Packed|"--"|"++"|"["|"]"|restrict|_Bool|_Complex|_Imaginary
     
 spaces [\r\t ]
@@ -69,7 +81,17 @@ escape_nd n|t|\\|\'|\"
 {digit}+"."|{digit}*"."{digit}+|({digit}+"."{digit}*|"."{digit}+|{digit}+){exp}{signal}?{digit}+         { if(l > 0) printf("DECIMAL(%s)\n", yytext); col += yyleng; return DECIMAL;}   
 {digit}+                    { if(l > 0) printf("NATURAL(%s)\n", yytext); col += yyleng;     yylval = strdup(yytext); return NATURAL;}
 {reserved}                  { if(l > 0) printf("RESERVED(%s)\n", yytext); col += yyleng;    return RESERVED;}
-{keywords}                  { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return KEYWORD;}
+
+{INT}                       { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return INT;}
+{CHAR}                      { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return CHAR;}
+{DOUBLE}                    { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return DOUBLE;}
+{IF}                        { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return IF;}
+{ELSE}                      { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return ELSE;}
+{WHILE}                     { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return WHILE;}
+{SHORT}                     { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return SHORT;}
+{RETURN}                    { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return RETURN;}
+{VOID}                      { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return VOID;}
+
 {v_identifier}              { if(l > 0) printf("IDENTIFIER(%s)\n", yytext); col += yyleng;  return IDENTIFIER;}
 
 "//"                        {BEGIN LINE_COMMENT;}
