@@ -5,16 +5,40 @@
 #include <string.h>
 #include <stdio.h>
 
+enum category {Program,
+               Declaration,
+               FuncDeclaration,
+               FuncDefinition,
+               ParamList,
+               FuncBody,
+               ParamDeclaration,
+               StatList, If, While, Return,
+               Or, And, Eq, Ne, Lt, Gt, Le, Ge, Add, Sub, Mul, Div, Mod, Not, Minus, Plus, Store, Comma, Call,
+               BitWiseAnd, BitWiseXor, BitWiseOr,
+               Char, ChrLit, Identifier,
+               Int, Short, Natural, Double, Decimal,
+               Void,
+               Null,
+               Aux};
+
+#define names {"Program", "Declaration", "FuncDeclaration", "FuncDefinition", "ParamList", "FuncBody", "ParamDeclaration", "StatList","If", "While", "Return", "Or", "And", "Eq", "Ne", "Lt", "Gt", "Add", "Sub", "Mult", "Div", "Mod", "Not", "Minus", "Plus", "Store", "Comma", "Call", "BitWiseAnd", "BitWiseXor", "BitWiseOr", "Char", "ChrLit", "Indentifier","Int", "Short", "Natural", "Double", "Decimal", "Void", "Null", "Aux"}
+
 typedef struct node {
 
-    char* info
+    enum category category;
+    char* info;
     struct node* child;
-    int line;
-    int col;
+    struct node_list* children;
 }Node;
 
-Node *add_node(char *info, int line, int column);
-void print_AbsTree(Node *node, int depth);
+struct node_list {
+    struct node *node;
+    struct node_list *next;
+};
+
+struct node *newnode(enum category category, char *token);
+void addchild(struct node *parent, struct node *child);
+void printAbsTree(Node *node, int depth);
 void freeAbsTree (Node* node);
 
 #endif
