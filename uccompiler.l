@@ -5,6 +5,12 @@
     */
 
     #include "y.tab.h"
+    #include "AbsTree.h"
+
+    extern struct node* program;
+    int yyparse(void);
+    void yyerror(char*);
+    #define PASS_TOKEN() yylval.info = strdup (yytext);
 
     int line = 1; int col = 1;
     int c_line = 1; int c_col = 1;
@@ -28,8 +34,6 @@ INT         int
 CHAR        char
 DOUBLE      double
 IF          if
-ELSE        else
-WHILE       while
 ELSE        else
 WHILE       while
 SHORT       short
@@ -78,8 +82,8 @@ escape_nd n|t|\\|\'|\"
 ")"                         { if(l > 0) printf ("RPAR\n"); col += yyleng;               return RPAR;}
 ";"                         { if(l > 0) printf ("SEMI\n"); col += yyleng;               return SEMI;}
 
-{digit}+"."|{digit}*"."{digit}+|({digit}+"."{digit}*|"."{digit}+|{digit}+){exp}{signal}?{digit}+         { if(l > 0) printf("DECIMAL(%s)\n", yytext); col += yyleng; return DECIMAL;}   
-{digit}+                    { if(l > 0) printf("NATURAL(%s)\n", yytext); col += yyleng;     yylval = strdup(yytext); return NATURAL;}
+{digit}+"."|{digit}*"."{digit}+|({digit}+"."{digit}*|"."{digit}+|{digit}+){exp}{signal}?{digit}+         { if(l > 0) printf("DECIMAL(%s)\n", yytext); col += yyleng; PASS_TOKEN(); return DECIMAL;}   
+{digit}+                    { if(l > 0) printf("NATURAL(%s)\n", yytext); col += yyleng; PASS_TOKEN(); return NATURAL;}
 {reserved}                  { if(l > 0) printf("RESERVED(%s)\n", yytext); col += yyleng;    return RESERVED;}
 
 {INT}                       { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return INT;}
@@ -92,7 +96,7 @@ escape_nd n|t|\\|\'|\"
 {RETURN}                    { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return RETURN;}
 {VOID}                      { if(l > 0) printf("%s\n", toUpper(yytext)); col += yyleng;     return VOID;}
 
-{v_identifier}              { if(l > 0) printf("IDENTIFIER(%s)\n", yytext); col += yyleng;  return IDENTIFIER;}
+{v_identifier}              { if(l > 0) printf("IDENTIFIER(%s)\n", yytext); col += yyleng; PASS_TOKEN(); return IDENTIFIER;}
 
 "//"                        {BEGIN LINE_COMMENT;}
 <LINE_COMMENT>.             {col += yyleng;}
@@ -103,7 +107,7 @@ escape_nd n|t|\\|\'|\"
 <BLOCK_COMMENT>"*/"         {col += yyleng; BEGIN 0;}
 <BLOCK_COMMENT>.            {col += yyleng;}
 
-\'(\\{escape}|[^\\\r\n\'])\'        { if(l > 0) printf("CHRLIT(%s)\n", yytext); col += yyleng; return CHRLIT;}
+\'(\\{escape}|[^\\\r\n\'])\'        { if(l > 0) printf("CHRLIT(%s)\n", yytext); col += yyleng; PASS_TOKEN(); return CHRLIT;}
 '([^\n\'\\]|\\.)*\\?{newline}       { printf("Line %d, column %d: unterminated char constant\n", line, col); col += yyleng; col = 1; line++;}
 '([^\n\'\\]|\\.)*'                  { printf("Line %d, column %d: invalid char constant (%s)\n", line, col, yytext); col += yyleng;}
 
@@ -115,10 +119,16 @@ int main(int argc, char** argv) {
     if(argc > 1) 
         if(!strcmp(argv[1],"-l")) l = 1;
     
-    yylex();
+    //yylex();
+    yyparse();
+    printAbsTree(program, 0);
     return 0;
 }
 
 int yywrap() {
     return 1;
+}
+void yyerror(char* error){
+
+    ;
 }
