@@ -51,7 +51,6 @@ escape_nd n|t|\\|\'|\"
 
 %X LINE_COMMENT
 %X BLOCK_COMMENT
-%X CHRLIT
 
 %%
 {spaces}                    {col += yyleng;}

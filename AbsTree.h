@@ -21,7 +21,7 @@ enum category {Program,
                Null,
                Aux};
 
-#define names {"Program", "Declaration", "FuncDeclaration", "FuncDefinition", "ParamList", "FuncBody", "ParamDeclaration", "StatList","If", "While", "Return", "Or", "And", "Eq", "Ne", "Lt", "Gt", "Add", "Sub", "Mult", "Div", "Mod", "Not", "Minus", "Plus", "Store", "Comma", "Call", "BitWiseAnd", "BitWiseXor", "BitWiseOr", "Char", "ChrLit", "Indentifier","Int", "Short", "Natural", "Double", "Decimal", "Void", "Null", "Aux"}
+#define names {"Program", "Declaration", "FuncDeclaration", "FuncDefinition", "ParamList", "FuncBody", "ParamDeclaration", "StatList","If", "While", "Return", "Or", "And", "Eq", "Ne", "Lt", "Gt", "Le", "Ge", "Add", "Sub", "Mult", "Div", "Mod", "Not", "Minus", "Plus", "Store", "Comma", "Call", "BitWiseAnd", "BitWiseXor", "BitWiseOr", "Char", "ChrLit", "Indentifier","Int", "Short", "Natural", "Double", "Decimal", "Void", "Null", "Aux"}
 
 typedef struct node {
 
@@ -40,5 +40,6 @@ struct node *newnode(enum category category, char *token);
 void addchild(struct node *parent, struct node *child);
 void printAbsTree(Node *node, int depth);
 void freeAbsTree (Node* node);
+void adoptChildren(struct node* node, struct node* aux);
 
 #endif

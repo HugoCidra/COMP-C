@@ -31,6 +31,7 @@ void addchild(struct node *parent, struct node *child) {
 char* category_name[] = names;
 
 void printAbsTree(struct node *node, int depth) {
+    if(node == NULL) return ;
     int i;
     for(i = 0; i < depth; i++)
         printf("__");
@@ -44,6 +45,7 @@ void printAbsTree(struct node *node, int depth) {
 }
 
 void FreeAbsTree(struct node *node) {
+    if(node == NULL) return ;
     if(node != NULL) {
         struct node_list *child = node->children;
         while(child != NULL) {
@@ -56,4 +58,17 @@ void FreeAbsTree(struct node *node) {
             free(node->info);
         free(node);
     }
+}
+
+void adoptChildren(struct node* node, struct node* aux) {
+    struct node_list* child = aux->children;
+    struct node_list* next;
+    while(child != NULL) {
+        next = child->next;
+        addchild(node, child->node);
+        free(child);
+        child = next;
+    }
+
+    free(aux);
 }
