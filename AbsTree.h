@@ -1,9 +1,9 @@
 #ifndef AbsTree_h
 #define AbsTree_h
 
-#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 enum category {Program,
                Declaration,

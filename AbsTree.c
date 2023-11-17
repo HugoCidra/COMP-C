@@ -34,7 +34,7 @@ void printAbsTree(struct node *node, int depth) {
     if(node == NULL) return ;
     int i;
     for(i = 0; i < depth; i++)
-        printf("__");
+        printf("..");
     if(node->info == NULL)
         printf("%s\n", category_name[node->category]);
     else

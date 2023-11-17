@@ -6,6 +6,7 @@
 
     #include "y.tab.h"
     #include "AbsTree.h"
+    #include <stdlib.h>
 
     extern struct node* program;
     int yyparse(void);
