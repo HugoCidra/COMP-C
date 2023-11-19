@@ -3,6 +3,7 @@
     #include <stdlib.h>
 
     struct node* program;
+    struct node* temp;
     int yylex(void);
     void yyerror(char*);
 %}
@@ -134,29 +135,29 @@ ParameterDeclaration : TypeSpec                                                 
                      | TypeSpec IDENTIFIER                                              { $$ = newnode(ParamDeclaration, NULL);         addchild($$, $1); addchild($$, newnode(Identifier, $2));}
                      ;
 
-Declaration : TypeSpec Declarator SEMI                                                  { $$ = newnode(Declaration, NULL);              addchild($$, $1); adoptChildren($$, $2);}
-            | TypeSpec Declarator DeclarationRECUR SEMI                                 { $$ = newnode(Declaration, NULL);              addchild($$, $1); adoptChildren($$, $1); adoptChildren($$, $3);}
+Declaration : TypeSpec Declarator SEMI                                                  { $$ = $2;}
+            | TypeSpec DeclarationRECUR SEMI                                            { $$ = $2;}
             ;
 
-DeclarationRECUR : COMMA Declarator                                                     { $$ = newnode(Aux, NULL);                      adoptChildren($$, $2);}
-                 | DeclarationRECUR COMMA Declarator                                    { $$ = $1;                                      adoptChildren($$, $3);}
+DeclarationRECUR : Declarator                                                           { $$ = $1;}
+                 | DeclarationRECUR COMMA Declarator                                    { $$ = newnode(Aux, NULL);                     addchild($$, $1); addchild($$, $3);}
                  ;
 
-TypeSpec : CHAR                                                                         { $$ = newnode(Char, NULL);}
-         | INT                                                                          { $$ = newnode(Int, NULL);}
-         | VOID                                                                         { $$ = newnode(Void, NULL);}
-         | SHORT                                                                        { $$ = newnode(Short, NULL);}
-         | DOUBLE                                                                       { $$ = newnode(Double, NULL);}
+TypeSpec : CHAR                                                                         { $$ = temp = newnode(Char, NULL);}
+         | INT                                                                          { $$ = temp = newnode(Int, NULL);}
+         | VOID                                                                         { $$ = temp = newnode(Void, NULL);}
+         | SHORT                                                                        { $$ = temp = newnode(Short, NULL);}
+         | DOUBLE                                                                       { $$ = temp = newnode(Double, NULL);}
          ;
 
-Declarator : IDENTIFIER                                                                 { $$ = newnode(Identifier, $1);}
-           | IDENTIFIER ASSIGN Expr                                                     { $$ = newnode(Aux, NULL);                      addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
+Declarator : IDENTIFIER                                                                 { $$ = newnode(Declaration, NULL);              addchild($$, newnode(temp->category, NULL)); addchild($$, newnode(Identifier, $1));}
+           | IDENTIFIER ASSIGN Expr                                                     { $$ = newnode(Declaration, NULL);              addchild($$, newnode(temp->category, NULL)); addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
            ;
 
 Statement : SEMI                                                                        { $$ = NULL;}
           | Expr SEMI                                                                   { $$ = $1;}
           | LBRACE RBRACE                                                               { $$ = NULL;}
-          | LBRACE StatementRECUR RBRACE                                                { if(!$2->children->node)                       {$$ = NULL;} else if(!$2->children->next) {$$ = $2->children->node; free($2);} else {$$ = newnode(StatList, NULL); adoptChildren($$, $2);}}
+          | LBRACE StatementRECUR RBRACE                                                { if(!$2) { $$ = NULL;} else if($2->category == Aux) {$$ = newnode(StatList, NULL); adoptChildren($$, $2);} else {$$ = $2;}}
           | IF LPAR Expr RPAR Statement         %prec LOWER                             { $$ = newnode(If, NULL);                       addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);}; addchild($$, newnode(Null, NULL));}
           | IF LPAR Expr RPAR Statement ELSE Statement                                  { $$ = newnode(If, NULL);                       addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);}; if($7 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$7);}}
           | WHILE LPAR Expr RPAR Statement                                              { $$ = newnode(While, NULL);                    addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);};}
@@ -164,8 +165,8 @@ Statement : SEMI                                                                
           | RETURN Expr SEMI                                                            { $$ = newnode(Return, NULL);                   addchild($$, $2);}
           ;
 
-StatementRECUR : Statement                                                              { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
-               | StatementRECUR Statement                                               { $$ = $1                                       addchild($$, $2);}
+StatementRECUR : Statement                                                              { $$ = $1;}
+               | Statement StatementRECUR                                               { $$ = newnode(Aux, NULL);                     addchild($$, $1); if($2->category == Aux) {adoptChildren($$, $2);} else addchild($$, $2);}
                ;
 
 Expr : Expr ASSIGN Expr                                                                 { $$ = newnode(Store, NULL);                    addchild($$, $1); addchild($$, $3);}
