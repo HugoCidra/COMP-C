@@ -151,12 +151,13 @@ TypeSpec : CHAR                                                                 
 
 Declarator : IDENTIFIER                                                                 { $$ = newnode(Identifier, $1);}
            | IDENTIFIER ASSIGN Expr                                                     { $$ = newnode(Aux, NULL);                      addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
+           ;
 
 Statement : SEMI                                                                        { $$ = NULL;}
           | Expr SEMI                                                                   { $$ = $1;}
           | LBRACE RBRACE                                                               { $$ = NULL;}
-          | LBRACE StatementRECUR RBRACE                                                { if(!$2->children->next->node) {$$ = $2->children->node; free($2);} else {$$ = newnode(StatList, NULL); adoptChildren($$, $2);}}
-          | IF LPAR Expr RPAR Statement                                                 { $$ = newnode(If, NULL);                       addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);}; addchild($$, newnode(Null, NULL));}
+          | LBRACE StatementRECUR RBRACE                                                { if(!$2->children->node)                       {$$ = NULL;} else if(!$2->children->next) {$$ = $2->children->node; free($2);} else {$$ = newnode(StatList, NULL); adoptChildren($$, $2);}}
+          | IF LPAR Expr RPAR Statement         %prec LOWER                             { $$ = newnode(If, NULL);                       addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);}; addchild($$, newnode(Null, NULL));}
           | IF LPAR Expr RPAR Statement ELSE Statement                                  { $$ = newnode(If, NULL);                       addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);}; if($7 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$7);}}
           | WHILE LPAR Expr RPAR Statement                                              { $$ = newnode(While, NULL);                    addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);};}
           | RETURN SEMI                                                                 { $$ = newnode(Return, NULL);                   addchild($$, newnode(Null, NULL));}
@@ -164,7 +165,7 @@ Statement : SEMI                                                                
           ;
 
 StatementRECUR : Statement                                                              { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
-               | StatementRECUR Statement                                               { $$ = $1;                                      addchild($$, $2);}
+               | StatementRECUR Statement                                               { $$ = $1                                       addchild($$, $2);}
                ;
 
 Expr : Expr ASSIGN Expr                                                                 { $$ = newnode(Store, NULL);                    addchild($$, $1); addchild($$, $3);}

@@ -122,6 +122,7 @@ int main(int argc, char** argv) {
     //yylex();
     yyparse();
     printAbsTree(program, 0);
+    freeAbsTree(program);
     return 0;
 }
 
