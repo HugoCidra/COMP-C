@@ -9,7 +9,6 @@
 %}
 
 %type <node> Program
-%type <node> FunctionsAndDeclarations
 %type <node> FunctionDefinition
 %type <node> FunctionBody
 %type <node> DeclarationsAndStatements
@@ -27,6 +26,8 @@
 %type <node> DeclarationRECUR
 %type <node> StatementRECUR
 %type <node> ExprRECUR
+
+%type <node> ExprCOMMA
 
 %token BITWISEAND
 %token BITWISEOR
@@ -92,17 +93,13 @@
 }
 
 %%
-Program : FunctionsAndDeclarations                                                      { $$ = program = newnode(Program, NULL);        addchild($$, $1);}
+Program : FunctionDefinition                                                            { $$ = program = newnode(Program, NULL);        if($1->category == Aux) {adoptChildren($$, $1);} else{ addchild($$, $1);}}
+        | FunctionDeclaration                                                           { $$ = program = newnode(Program, NULL);        if($1->category == Aux) {adoptChildren($$, $1);} else{ addchild($$, $1);};}
+        | Declaration                                                                   { $$ = program = newnode(Program, NULL);        if($1->category == Aux) {adoptChildren($$, $1);} else{ addchild($$, $1);}}
+        | Program FunctionDefinition                                                    { $$ = $1;                                      addchild($$, $2);}
+        | Program FunctionDeclaration                                                   { $$ = $1;                                      addchild($$, $2);}
+        | Program Declaration                                                           { $$ = $1;                                      adoptChildren($$, $2);}
         ;
-
-
-FunctionsAndDeclarations : FunctionDefinition                                           { $$ = $1;}
-                         | FunctionDeclaration                                          { $$ = $1;}
-                         | Declaration                                                  { $$ = $1;}
-                         | FunctionsAndDeclarations FunctionDefinition                  { $$ = $1;                                      addchild($$, $2);}
-                         | FunctionsAndDeclarations FunctionDeclaration                 { $$ = $1;                                      addchild($$, $2);}
-                         | FunctionsAndDeclarations Declaration                         { $$ = $1;                                      addchild($$, $2);}
-                         ;
 
 FunctionDefinition : TypeSpec FunctionDeclarator FunctionBody                           { $$ = newnode(FuncDefinition, NULL);           addchild($$, $1); adoptChildren($$, $2); addchild($$, $3);}
                    ;
@@ -111,10 +108,10 @@ FunctionBody : LBRACE DeclarationsAndStatements RBRACE                          
              | LBRACE RBRACE                                                            { $$ = NULL;}
              ;
 
-DeclarationsAndStatements : Statement                                                   { $$ = $1;}
-                          | Declaration                                                 { $$ = $1;}
+DeclarationsAndStatements : Statement                                                   { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
+                          | Declaration                                                 { $$ = $1;                                      }
                           | Statement DeclarationsAndStatements                         { $$ = newnode(Aux, NULL);                      addchild($$, $1); if($2->category == Aux) {adoptChildren($$, $2);} else {addchild($$, $2);}}
-                          | Declaration DeclarationsAndStatements                       { $$ = newnode(Aux, NULL);                      addchild($$, $1); adoptChildren($$, $2);}
+                          | Declaration DeclarationsAndStatements                       { $$ = newnode(Aux, NULL);                      adoptChildren($$, $1); adoptChildren($$, $2);}
                           ;
 
 FunctionDeclaration : TypeSpec FunctionDeclarator SEMI                                  { $$ = newnode(FuncDeclaration, NULL);          addchild($$, $1); adoptChildren($$, $2);}
@@ -135,12 +132,12 @@ ParameterDeclaration : TypeSpec                                                 
                      | TypeSpec IDENTIFIER                                              { $$ = newnode(ParamDeclaration, NULL);         addchild($$, $1); addchild($$, newnode(Identifier, $2));}
                      ;
 
-Declaration : TypeSpec Declarator SEMI                                                  { $$ = $2;}
+Declaration : error SEMI                                                                { $$ = newnode(Null, NULL);}
             | TypeSpec DeclarationRECUR SEMI                                            { $$ = $2;}
             ;
 
-DeclarationRECUR : Declarator                                                           { $$ = $1;}
-                 | DeclarationRECUR COMMA Declarator                                    { $$ = newnode(Aux, NULL);                     addchild($$, $1); addchild($$, $3);}
+DeclarationRECUR : Declarator                                                           { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
+                 | DeclarationRECUR COMMA Declarator                                    { $$ = $1;                                      addchild($$, $3);}
                  ;
 
 TypeSpec : CHAR                                                                         { $$ = temp = newnode(Char, NULL);}
@@ -155,14 +152,14 @@ Declarator : IDENTIFIER                                                         
            ;
 
 Statement : SEMI                                                                        { $$ = NULL;}
-          | Expr SEMI                                                                   { $$ = $1;}
+          | ExprCOMMA SEMI                                                              { $$ = $1;}
           | LBRACE RBRACE                                                               { $$ = NULL;}
           | LBRACE StatementRECUR RBRACE                                                { if(!$2) { $$ = NULL;} else if($2->category == Aux) {$$ = newnode(StatList, NULL); adoptChildren($$, $2);} else {$$ = $2;}}
-          | IF LPAR Expr RPAR Statement         %prec LOWER                             { $$ = newnode(If, NULL);                       addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);}; addchild($$, newnode(Null, NULL));}
-          | IF LPAR Expr RPAR Statement ELSE Statement                                  { $$ = newnode(If, NULL);                       addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);}; if($7 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$7);}}
-          | WHILE LPAR Expr RPAR Statement                                              { $$ = newnode(While, NULL);                    addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);};}
+          | IF LPAR ExprCOMMA RPAR Statement         %prec LOWER                        { $$ = newnode(If, NULL);                       addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);}; addchild($$, newnode(Null, NULL));}
+          | IF LPAR ExprCOMMA RPAR Statement ELSE Statement                             { $$ = newnode(If, NULL);                       addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);}; if($7 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$7);}}
+          | WHILE LPAR ExprCOMMA RPAR Statement                                         { $$ = newnode(While, NULL);                    addchild($$, $3); if($5 == NULL) {addchild($$, newnode(Null, NULL));} else {addchild($$,$5);};}
           | RETURN SEMI                                                                 { $$ = newnode(Return, NULL);                   addchild($$, newnode(Null, NULL));}
-          | RETURN Expr SEMI                                                            { $$ = newnode(Return, NULL);                   addchild($$, $2);}
+          | RETURN ExprCOMMA SEMI                                                       { $$ = newnode(Return, NULL);                   addchild($$, $2);}
           ;
 
 StatementRECUR : Statement                                                              { $$ = $1;}
@@ -170,7 +167,6 @@ StatementRECUR : Statement                                                      
                ;
 
 Expr : Expr ASSIGN Expr                                                                 { $$ = newnode(Store, NULL);                    addchild($$, $1); addchild($$, $3);}
-     | Expr COMMA Expr                                                                  { $$ = newnode(Comma, NULL);                    addchild($$, $1); addchild($$, $3);}
      | Expr PLUS Expr                                                                   { $$ = newnode(Add, NULL);                      addchild($$, $1); addchild($$, $3);}
      | Expr MINUS Expr                                                                  { $$ = newnode(Sub, NULL);                      addchild($$, $1); addchild($$, $3);}
      | Expr MUL Expr                                                                    { $$ = newnode(Mul, NULL);                      addchild($$, $1); addchild($$, $3);}
@@ -202,5 +198,8 @@ Expr : Expr ASSIGN Expr                                                         
 ExprRECUR : Expr %prec LOWER                                                            { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
           | ExprRECUR COMMA Expr %prec HIGHER                                           { $$ = $1;                                      addchild($$, $3);}
           ;
+
+ExprCOMMA : Expr                                                                        {$$ = $1;}
+          | ExprCOMMA COMMA Expr                                                        {$$ = newnode(Comma, NULL);                     addchild($$, $1); addchild($$, $3);}
 
 %%

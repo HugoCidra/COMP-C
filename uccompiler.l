@@ -120,17 +120,18 @@ escape_nd n|t|\\|\'|\"
 %%
 extern int yylex();
 int main(int argc, char** argv) {
-    if(argc > 1) 
+    if(argc > 1) {
         if(!strcmp(argv[1],"-l")) {
-            l = 1;
-            t = 0;
+        l = 1;
+        t = 0;
         }
+        
         if(!strcmp(argv[1],"-t")) t = 2;
-    
+    }
+
+    yyparse();
     if(l > 0) yylex();
     else {
-        yyparse();
-
         if(errors == 0 && t > 1) {
             if(!program) return 0;
             
@@ -148,5 +149,5 @@ int yywrap() {
 }
 void yyerror(char* error){
     errors++;
-    printf("Line %d, column %d: %s: %s\n", line, col, error, yytext);
+    printf("Line %d, column %lu: %s: %s\n", line, col-strlen(yytext), error, yytext);
 }
