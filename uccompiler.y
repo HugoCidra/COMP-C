@@ -109,7 +109,7 @@ FunctionBody : LBRACE DeclarationsAndStatements RBRACE                          
              ;
 
 DeclarationsAndStatements : Statement                                                   { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
-                          | Declaration                                                 { $$ = $1;                                      }
+                          | Declaration                                                 { $$ = $1;}
                           | Statement DeclarationsAndStatements                         { $$ = newnode(Aux, NULL);                      addchild($$, $1); if($2->category == Aux) {adoptChildren($$, $2);} else {addchild($$, $2);}}
                           | Declaration DeclarationsAndStatements                       { $$ = newnode(Aux, NULL);                      adoptChildren($$, $1); adoptChildren($$, $2);}
                           ;
@@ -192,7 +192,7 @@ Expr : Expr ASSIGN Expr                                                         
      | NATURAL                                                                          { $$ = newnode(Natural, $1);}
      | CHRLIT                                                                           { $$ = newnode(ChrLit, $1);}
      | DECIMAL                                                                          { $$ = newnode(Decimal, $1);}
-     | LPAR Expr RPAR                                                                   { $$ = $2;}
+     | LPAR ExprCOMMA RPAR                                                              { $$ = $2;}
      ;
 
 ExprRECUR : Expr %prec LOWER                                                            { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
