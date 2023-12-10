@@ -29,7 +29,7 @@ typedef struct node {
     char* info;
     struct node* child;
     struct node_list* children;
-}Node;
+} node;
 
 struct node_list {
     struct node *node;
@@ -38,8 +38,8 @@ struct node_list {
 
 struct node *newnode(enum category category, char *token);
 void addchild(struct node *parent, struct node *child);
-void printAbsTree(Node *node, int depth);
-void freeAbsTree (Node* node);
+void printAbsTree(struct node *node, int depth);
+void freeAbsTree (struct node* node);
 void adoptChildren(struct node* node, struct node* aux);
 
 #endif

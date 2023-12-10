@@ -162,7 +162,8 @@ Statement : SEMI                                                                
           | RETURN ExprCOMMA SEMI                                                       { $$ = newnode(Return, NULL);                   addchild($$, $2);}
           ;
 
-StatementRECUR : Statement                                                              { $$ = $1;}
+StatementRECUR : error                                                                  { $$ = newnode(Null, NULL);}
+               | Statement                                                              { $$ = $1;}
                | Statement StatementRECUR                                               { $$ = newnode(Aux, NULL);                     addchild($$, $1); if($2->category == Aux) {adoptChildren($$, $2);} else addchild($$, $2);}
                ;
 
@@ -195,7 +196,8 @@ Expr : Expr ASSIGN Expr                                                         
      | LPAR ExprCOMMA RPAR                                                              { $$ = $2;}
      ;
 
-ExprRECUR : Expr %prec LOWER                                                            { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
+ExprRECUR : error                                                                       { $$ = newnode(Null, NULL);}
+          | Expr %prec LOWER                                                            { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
           | ExprRECUR COMMA Expr %prec HIGHER                                           { $$ = $1;                                      addchild($$, $3);}
           ;
 
