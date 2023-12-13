@@ -162,7 +162,8 @@ Statement : SEMI                                                                
           | RETURN ExprCOMMA SEMI                                                       { $$ = newnode(Return, NULL);                   addchild($$, $2);}
           ;
 
-StatementRECUR : error                                                                  { $$ = newnode(Null, NULL);}
+StatementRECUR : error SEMI                                                             { $$ = newnode(Null, NULL);}
+               | error                                                                  { $$ = newnode(Null, NULL);}
                | Statement                                                              { $$ = $1;}
                | Statement StatementRECUR                                               { $$ = newnode(Aux, NULL);                     addchild($$, $1); if($2->category == Aux) {adoptChildren($$, $2);} else addchild($$, $2);}
                ;
