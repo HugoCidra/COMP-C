@@ -21,10 +21,12 @@ enum category {Program,
                Null,
                Aux};
 
+enum type {integer_type, double_type, no_type};
+
 #define names {"Program", "Declaration", "FuncDeclaration", "FuncDefinition", "ParamList", "FuncBody", "ParamDeclaration", "StatList","If", "While", "Return", "Or", "And", "Eq", "Ne", "Lt", "Gt", "Le", "Ge", "Add", "Sub", "Mul", "Div", "Mod", "Not", "Minus", "Plus", "Store", "Comma", "Call", "BitWiseAnd", "BitWiseXor", "BitWiseOr", "Char", "ChrLit", "Identifier","Int", "Short", "Natural", "Double", "Decimal", "Void", "Null", "Aux"}
 
 typedef struct node {
-
+    enum type type;
     enum category category;
     char* info;
     struct node* child;
