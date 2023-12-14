@@ -6,6 +6,7 @@
 
     #include "y.tab.h"
     #include "AbsTree.h"
+    #include "semantics.h"
     #include <stdlib.h>
     #include <stdio.h>
     #include <string.h>
@@ -18,7 +19,7 @@
 
     int line = 1; int col = 1;
     int c_line = 1; int c_col = 1;
-    int l = 0, t = 1;
+    int l = 0, t = 1, s = 0;
     int errors = 0;
 
     char* toUpper(char* temp) {
@@ -127,6 +128,8 @@ int main(int argc, char** argv) {
         }
         
         if(!strcmp(argv[1],"-t")) t = 2;
+
+        if(!strcmp(argv[1],"-s")) s = 1;
     }
 
     yyparse();
@@ -137,6 +140,13 @@ int main(int argc, char** argv) {
             
             printAbsTree(program, 0);
             //freeAbsTree(program);
+            free(temp);
+        }
+        if(errors == 0 && s > 0) {
+            if(!program) return 0;
+
+            show_symbol_table();
+            //printAbsTree();
             free(temp);
         }
     }
