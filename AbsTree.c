@@ -81,3 +81,11 @@ void adoptChildren(struct node* node, struct node* aux) {
 
     free(aux);
 }
+
+struct node *getChild(struct node *parent, int position) {
+    struct node_list *children = parent->children;
+    while((children = children->next) != NULL)
+        if(position-- == 0)
+            return children->node;
+    return NULL;
+}
