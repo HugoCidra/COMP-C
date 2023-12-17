@@ -51,5 +51,6 @@ void printAbsTree(struct node *node, int depth);
 void freeAbsTree (struct node* node);
 void adoptChildren(struct node* node, struct node* aux);
 node* getChild(struct node *parent, int position);
+int countchildren(struct node *node);
 
 #endif

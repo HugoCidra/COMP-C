@@ -8,18 +8,16 @@
 
 #include "AbsTree.h"
 
-int check_program(struct node *program);
-
 typedef struct symbol_list_ {
     char *identifier;
     enum type type;
-    struct node *node;
+    node *node;
     struct symbol_list_ *next;
 } symbol_list;
 
 symbol_list* insert_symbol(symbol_list* symbol_table, char* identifier, enum type type, node* node);
 symbol_list* search_symbol(symbol_list* symbol_table, char* identifier);
 void show_symbol_table();
-int check_program(node* program);
+int check_program(node *program);
 
 #endif

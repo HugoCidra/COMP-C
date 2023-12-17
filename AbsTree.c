@@ -82,10 +82,21 @@ void adoptChildren(struct node* node, struct node* aux) {
     free(aux);
 }
 
-struct node *getChild(struct node *parent, int position) {
+node *getChild(node *parent, int position) {
     struct node_list *children = parent->children;
-    while((children = children->next) != NULL)
+    while(children != NULL) {
         if(position-- == 0)
             return children->node;
+        
+        children = children->next;
+    }
+        
     return NULL;
+}
+
+// count the children of a node
+int countchildren(struct node *node) {
+    int i = 0;
+    while(getChild(node, i) != NULL) i++;
+    return i;
 }
