@@ -1,3 +1,7 @@
+/*
+* Hugo Batista Cidra Duarte - 2020219765
+* Nuno Carvalho do Nascimento - 2020219249
+*/
 #include "AbsTree.h"
 
 struct node *newnode(enum category category, char *token) {
@@ -80,4 +84,23 @@ void adoptChildren(struct node* node, struct node* aux) {
     }
 
     free(aux);
+}
+
+node *getChild(node *parent, int position) {
+    struct node_list *children = parent->children;
+    while(children != NULL) {
+        if(position-- == 0)
+            return children->node;
+        
+        children = children->next;
+    }
+        
+    return NULL;
+}
+
+// count the children of a node
+int countchildren(struct node *node) {
+    int i = 0;
+    while(getChild(node, i) != NULL) i++;
+    return i;
 }

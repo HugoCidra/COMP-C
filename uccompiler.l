@@ -4,21 +4,22 @@
      * Nuno Carvalho do Nascimento - 2020219249
     */
 
-    #include "y.tab.h"
-    #include "AbsTree.h"
     #include <stdlib.h>
     #include <stdio.h>
     #include <string.h>
+    #include "y.tab.h"
+    #include "AbsTree.h"
+    #include "semantics.h"
 
     extern struct node* program;
     extern struct node* temp;
     int yyparse(void);
     void yyerror(char*);
-    #define PASS_TOKEN() yylval.info = strdup (yytext);
+    #define PASS_TOKEN() yylval.info = strdup(yytext);
 
     int line = 1; int col = 1;
     int c_line = 1; int c_col = 1;
-    int l = 0, t = 1;
+    int l = 0, t = 1, s = 0;
     int errors = 0;
 
     char* toUpper(char* temp) {
@@ -127,8 +128,10 @@ int main(int argc, char** argv) {
         }
         
         if(!strcmp(argv[1],"-t")) t = 2;
-    }
 
+        if(!strcmp(argv[1],"-s")) s = 1;
+    }
+    
     yyparse();
     if(l > 0) yylex();
     else {
@@ -139,8 +142,18 @@ int main(int argc, char** argv) {
             //freeAbsTree(program);
             free(temp);
         }
+        if(errors == 0 && s > 0) {
+            if(!program) return 0;
+
+            
+            check_program(program);
+            show_symbol_table();
+            printAbsTree(program, 0);
+            
+            free(temp);
+        }
     }
-    
+
     return 0;
 }
 

@@ -1,4 +1,9 @@
 %{
+     /*
+      * Hugo Batista Cidra Duarte - 2020219765
+      * Nuno Carvalho do Nascimento - 2020219249
+     */
+
     #include "AbsTree.h"
     #include <stdlib.h>
 
@@ -105,7 +110,7 @@ FunctionDefinition : TypeSpec FunctionDeclarator FunctionBody                   
                    ;
 
 FunctionBody : LBRACE DeclarationsAndStatements RBRACE                                  { $$ = newnode(FuncBody, NULL);                 adoptChildren($$, $2);}
-             | LBRACE RBRACE                                                            { $$ = NULL;}
+             | LBRACE RBRACE                                                            { $$ = newnode(FuncBody, NULL);}
              ;
 
 DeclarationsAndStatements : Statement                                                   { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
