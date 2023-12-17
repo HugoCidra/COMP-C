@@ -84,20 +84,19 @@ void check_parameters(node* parameters, symbol_list* scope) {
 }
 
 void check_function(node *function) {
-    node* id = function->children->node;
-    //printf("id: %s\n", id->info);
-    /*if(search_symbol(symbol_table, id->info) == NULL); //insert_symbol(symbol_table, id->info, no_type, function);
+    node* id = function;
+    if(search_symbol(symbol_table, id->info) == NULL) insert_symbol(symbol_table, id->info, no_type, function);
     else {
         printf("Identifier %s already declared\n", id->info);
         semantic_errors++;
-    }*/
+    }
 
     
-    //symbol_list* scope = (symbol_list*) malloc(sizeof(symbol_list));
-    //scope->next = NULL;
-    //check_parameters(getChild(function, 1), scope);
-    //check_expression(getChild(function, 2), scope);
-    //free(scope);
+    symbol_list* scope = (symbol_list*) malloc(sizeof(symbol_list));
+    scope->next = NULL;
+    check_parameters(getChild(function, 1), scope);
+    check_expression(getChild(function, 2), scope);
+    free(scope);
 }
 
 //semantic analysis begins here, with the AST root node
@@ -108,17 +107,15 @@ int check_program(node* program) {
     symbol_table->next = NULL;
 
     //predeclared funcs, no children
-    
-    //insert_symbol(symbol_table, "putchar", integer_type, newnode(FuncDeclaration, NULL));
-    //insert_symbol(symbol_table, "getchar", integer_type, newnode(FuncDeclaration, NULL));
+    insert_symbol(symbol_table, "putchar", integer_type, newnode(FuncDeclaration, NULL));
+    insert_symbol(symbol_table, "getchar", integer_type, newnode(FuncDeclaration, NULL));
 
     struct node_list* child = program->children;
-    printf("uqefg %s\n", child->node->children->next->node->info);
     while(child != NULL) {
-        check_function(child->node);
+        check_function(child->next->node);
         child = child->next;
     }
-        
+    
     return semantic_errors;
 }
 
@@ -152,17 +149,13 @@ symbol_list* search_symbol(symbol_list* table, char* identifier) {
     symbol_list* symbol = table->next;
 
     while(symbol != NULL) {
-        printf("dentro id: %s\n", symbol->identifier);
         if(strcmp(symbol->identifier, identifier) == 0) {
-            printf("da return dentro\n");
             return symbol;
         }
 
-        printf("qeifug: %s\n", symbol->identifier);
         symbol = symbol->next;
     }
     
-    printf("da return fora\n");
     return NULL;
 }
 

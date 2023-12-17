@@ -1,3 +1,7 @@
+/*
+* Hugo Batista Cidra Duarte - 2020219765
+* Nuno Carvalho do Nascimento - 2020219249
+*/
 #include "AbsTree.h"
 
 struct node *newnode(enum category category, char *token) {
