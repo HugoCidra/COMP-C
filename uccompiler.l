@@ -145,9 +145,10 @@ int main(int argc, char** argv) {
         if(errors == 0 && s > 0) {
             if(!program) return 0;
 
-            printAbsTree(program, 0);
+            
             check_program(program);
-            //show_symbol_table();
+            show_symbol_table();
+            printAbsTree(program, 0);
             
             free(temp);
         }
