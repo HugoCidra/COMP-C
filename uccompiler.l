@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
 
         if(!strcmp(argv[1],"-s")) s = 1;
     }
-
+    
     yyparse();
     if(l > 0) yylex();
     else {
@@ -145,9 +145,10 @@ int main(int argc, char** argv) {
         if(errors == 0 && s > 0) {
             if(!program) return 0;
 
-            check_program(program);
-            show_symbol_table();
             printAbsTree(program, 0);
+            check_program(program);
+            //show_symbol_table();
+            
             free(temp);
         }
     }

@@ -97,11 +97,6 @@
      struct node* node;
 }
 
-%locations
-%{
-     #define LOCATE(node, line, column) { node->info_line = line; node->info_column = column; }
-%}
-
 %%
 Program : FunctionDefinition                                                            { $$ = program = newnode(Program, NULL);        if($1->category == Aux) {adoptChildren($$, $1);} else{ addchild($$, $1);}}
         | FunctionDeclaration                                                           { $$ = program = newnode(Program, NULL);        if($1->category == Aux) {adoptChildren($$, $1);} else{ addchild($$, $1);};}
@@ -115,7 +110,7 @@ FunctionDefinition : TypeSpec FunctionDeclarator FunctionBody                   
                    ;
 
 FunctionBody : LBRACE DeclarationsAndStatements RBRACE                                  { $$ = newnode(FuncBody, NULL);                 adoptChildren($$, $2);}
-             | LBRACE RBRACE                                                            { $$ = NULL;}
+             | LBRACE RBRACE                                                            { $$ = newnode(FuncBody, NULL);}
              ;
 
 DeclarationsAndStatements : Statement                                                   { $$ = newnode(Aux, NULL);                      addchild($$, $1);}
@@ -127,7 +122,7 @@ DeclarationsAndStatements : Statement                                           
 FunctionDeclaration : TypeSpec FunctionDeclarator SEMI                                  { $$ = newnode(FuncDeclaration, NULL);          addchild($$, $1); adoptChildren($$, $2);}
                     ;
 
-FunctionDeclarator : IDENTIFIER LPAR ParameterList RPAR                                 { $$ = newnode(Aux, NULL);                      addchild($$, newnode(Identifier, $1)); addchild($$, $3);   LOCATE(getChild($$, 1), @2.first_line, @2.first_column);}
+FunctionDeclarator : IDENTIFIER LPAR ParameterList RPAR                                 { $$ = newnode(Aux, NULL);                      addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
                    ;
 
 ParameterList : ParameterDeclaration                                                    { $$ = newnode(ParamList, NULL);                addchild($$, $1);}
@@ -139,7 +134,7 @@ ParameterDeclarationRECUR : COMMA ParameterDeclaration                          
                           ;
 
 ParameterDeclaration : TypeSpec                                                         { $$ = newnode(ParamDeclaration, NULL);         addchild($$, $1);}
-                     | TypeSpec IDENTIFIER                                              { $$ = newnode(ParamDeclaration, NULL);         addchild($$, $1); addchild($$, newnode(Identifier, $2));   LOCATE(getChild($$, 1), @2.first_line, @2.first_column);}
+                     | TypeSpec IDENTIFIER                                              { $$ = newnode(ParamDeclaration, NULL);         addchild($$, $1); addchild($$, newnode(Identifier, $2));}
                      ;
 
 Declaration : error SEMI                                                                { $$ = newnode(Null, NULL);}
@@ -157,8 +152,8 @@ TypeSpec : CHAR                                                                 
          | DOUBLE                                                                       { $$ = temp = newnode(Double, NULL);}
          ;
 
-Declarator : IDENTIFIER                                                                 { $$ = newnode(Declaration, NULL);              addchild($$, newnode(temp->category, NULL)); addchild($$, newnode(Identifier, $1));      LOCATE(getChild($$, 1), @2.first_line, @2.first_column);}
-           | IDENTIFIER ASSIGN Expr                                                     { $$ = newnode(Declaration, NULL);              addchild($$, newnode(temp->category, NULL)); addchild($$, newnode(Identifier, $1)); addchild($$, $3);   LOCATE(getChild($$, 1), @2.first_line, @2.first_column);}
+Declarator : IDENTIFIER                                                                 { $$ = newnode(Declaration, NULL);              addchild($$, newnode(temp->category, NULL)); addchild($$, newnode(Identifier, $1));}
+           | IDENTIFIER ASSIGN Expr                                                     { $$ = newnode(Declaration, NULL);              addchild($$, newnode(temp->category, NULL)); addchild($$, newnode(Identifier, $1)); addchild($$, $3);}
            ;
 
 Statement : SEMI                                                                        { $$ = NULL;}
@@ -198,9 +193,9 @@ Expr : Expr ASSIGN Expr                                                         
      | PLUS Expr %prec NOT                                                              { $$ = newnode(Plus, NULL);                     addchild($$, $2);}
      | MINUS Expr %prec NOT                                                             { $$ = newnode(Minus, NULL);                    addchild($$, $2);}
      | NOT Expr                                                                         { $$ = newnode(Not, NULL);                      addchild($$, $2);}
-     | IDENTIFIER LPAR RPAR                                                             { $$ = newnode(Call, NULL);                     addchild($$, newnode(Identifier, $1));      LOCATE(getChild($$, 1), @2.first_line, @2.first_column);}
-     | IDENTIFIER LPAR ExprRECUR RPAR                                                   { $$ = newnode(Call, NULL);                     addchild($$, newnode(Identifier, $1)); adoptChildren($$, $3);   LOCATE(getChild($$, 1), @2.first_line, @2.first_column);}
-     | IDENTIFIER                                                                       { $$ = newnode(Identifier, $1);                 LOCATE($$, @1.first_line, @1.first_column);}
+     | IDENTIFIER LPAR RPAR                                                             { $$ = newnode(Call, NULL);                     addchild($$, newnode(Identifier, $1));}
+     | IDENTIFIER LPAR ExprRECUR RPAR                                                   { $$ = newnode(Call, NULL);                     addchild($$, newnode(Identifier, $1)); adoptChildren($$, $3);}
+     | IDENTIFIER                                                                       { $$ = newnode(Identifier, $1);}
      | NATURAL                                                                          { $$ = newnode(Natural, $1);}
      | CHRLIT                                                                           { $$ = newnode(ChrLit, $1);}
      | DECIMAL                                                                          { $$ = newnode(Decimal, $1);}
